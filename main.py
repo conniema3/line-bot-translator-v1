@@ -33,15 +33,20 @@ CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET')
 CHANNEL_ACCESS_TOKEN = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
 
 if CHANNEL_SECRET is None:
-    print('Specify LINE_CHANNEL_SECRET as environment variable.')
-    sys.exit(1)
+    print('Warning: LINE_CHANNEL_SECRET is not set.')
 if CHANNEL_ACCESS_TOKEN is None:
-    print('Specify LINE_CHANNEL_ACCESS_TOKEN as environment variable.')
-    sys.exit(1)
+    print('Warning: LINE_CHANNEL_ACCESS_TOKEN is not set.')
 
 # Initialize Line Bot configuration
-configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(CHANNEL_SECRET)
+if CHANNEL_ACCESS_TOKEN:
+    configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
+else:
+    configuration = None
+
+if CHANNEL_SECRET:
+    handler = WebhookHandler(CHANNEL_SECRET)
+else:
+    handler = None
 
 
 @app.get("/")
