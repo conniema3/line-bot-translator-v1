@@ -44,9 +44,9 @@ else:
     configuration = None
 
 if CHANNEL_SECRET:
-    handler = WebhookHandler(CHANNEL_SECRET)
+    line_handler = WebhookHandler(CHANNEL_SECRET)
 else:
-    handler = None
+    line_handler = None
 
 
 @app.get("/")
@@ -65,14 +65,15 @@ async def callback(request: Request):
 
     # handle webhook body
     try:
-        handler.handle(body_text, signature)
+        if line_handler:
+            line_handler.handle(body_text, signature)
     except InvalidSignatureError:
         raise HTTPException(status_code=400, detail="Invalid signature")
 
     return 'OK'
 
 
-@handler.add(FollowEvent)
+@line_handler.add(FollowEvent)
 def handle_follow(event):
     """
     Handle FollowEvent (Welcome message)
@@ -88,7 +89,7 @@ def handle_follow(event):
         )
 
 
-@handler.add(JoinEvent)
+@line_handler.add(JoinEvent)
 def handle_join(event):
     """
     Handle JoinEvent (Group/Room restrictions)
@@ -112,7 +113,7 @@ def handle_join(event):
             print(f"Error leaving group/room: {e}")
 
 
-@handler.add(MessageEvent, message=TextMessageContent)
+@line_handler.add(MessageEvent, message=TextMessageContent)
 def handle_text_message(event):
     """
     Handle TextMessageEvent
