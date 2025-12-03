@@ -173,10 +173,8 @@ def handle_text_message(event):
         return
 
     # 2. Context Storage (for non-setting messages)
-    # If it's a command, we might not want to add it to context, 
-    # but the requirement says "If not setting command, add to context".
-    # However, translation trigger shouldn't be added as a partner message.
-    is_translation_command = text in ["翻譯", "譯", "1"]
+    # Relaxed translation command detection
+    is_translation_command = "翻譯" in text or text in ["譯", "1"]
     
     if not is_translation_command:
         from store import store
@@ -189,6 +187,7 @@ def handle_text_message(event):
 
     # 3. Translation Trigger Detection
     if is_translation_command:
+        print(f"Translation triggered by text: {text}") # Debug log
         from store import store
         role = store.get_role(user_id)
         
