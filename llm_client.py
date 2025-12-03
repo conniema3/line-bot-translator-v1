@@ -6,10 +6,12 @@ class LLMClient:
     def __init__(self):
         api_key = os.getenv('GOOGLE_API_KEY')
         if not api_key:
-            print("Warning: GOOGLE_API_KEY not found in environment variables.")
+            print("Error: GOOGLE_API_KEY not found in environment variables.")
         else:
+            print(f"Initializing Gemini with API Key: {api_key[:5]}...{api_key[-3:]}") # Log partial key for debug
             genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel('gemini-pro')
+            # Use gemini-1.5-flash for better speed/cost, fallback to gemini-pro if needed
+            self.model = genai.GenerativeModel('gemini-1.5-flash')
 
     def call_llm_api(self, context: List[Dict], target_message: str, user_role: str) -> str:
         """
