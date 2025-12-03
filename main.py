@@ -129,28 +129,38 @@ def handle_text_message(event):
         return
 
     # 1. Role Setting Detection
-    if text.startswith("設定：") or text.startswith("設定:"):
-        try:
-            # Extract role (support "設定：我是男友" or "設定：男友")
-            content = text.split("：", 1)[1] if "：" in text else text.split(":", 1)[1]
-            content = content.strip()
-            
-            # Simple normalization
-            if "男友" in content:
-                role = "男友"
-            elif "女友" in content:
-                role = "女友"
-            else:
-                role = content # Fallback
-                
-            from store import store
-            success = store.set_role(user_id, role)
-            if success:
-                reply_text = f"設定成功！你的角色是：{role}"
-            else:
-                reply_text = "設定失敗，系統錯誤。"
-        except IndexError:
-            reply_text = "指令格式錯誤。請使用：設定：我是[角色]"
+    # Normalize text: remove spaces and colons for easier matching
+    clean_text = text.replace("：", "").replace(":", "").replace(" ", "")
+    
+    # Check for keywords
+    is_role_setting = False
+    new_role = None
+    
+    if any(keyword in clean_text for keyword in ["設定", "我是"]):
+        if "男友" in clean_text:
+            new_role = "男友"
+            is_role_setting = True
+        elif "女友" in clean_text:
+            new_role = "女友"
+            is_role_setting = True
+    
+    # Also allow exact matches for "男友" or "女友"
+    if clean_text in ["男友", "女友"]:
+        new_role = clean_text
+        is_role_setting = True
+
+    if is_role_setting and new_role:
+        from store import store
+        success = store.set_role(user_id, new_role)
+        
+        # Get Process ID to hint about Serverless state
+        import os
+        pid = os.getpid()
+        
+        if success:
+            reply_text = f"設定成功！你的角色是：{new_role}\n(Server PID: {pid})\n\n注意：在 Vercel 上，若一段時間未對話，記憶體可能會被重置，導致角色遺失。"
+        else:
+            reply_text = "設定失敗，系統錯誤。"
             
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
