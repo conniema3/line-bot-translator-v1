@@ -77,5 +77,12 @@ class InMemoryStore:
         role = state.get("role")
         return role if role != "未設定" else None
 
+    def get_recent_context(self, user_id: str) -> List[Dict]:
+        """
+        獲取最近的對話上下文列表。
+        """
+        state = self.get_or_init_state(user_id)
+        return list(state["recent_context"])
+
 # Global instance
 store = InMemoryStore()
